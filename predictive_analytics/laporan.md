@@ -5,7 +5,6 @@ Energi primer, melalui proses konversi energi, menghasilkan listrik. Sebagian be
 
 Energi surya merupakan salah satu energi yang potensial untuk menggantikan bahan bakar fosil sebagai sumber energi primer pembangkit listrik. Energi surya tergolong terbarukan karena dapat dimanfaatkan secara bebas tanpa ada habisnya. Sel surya adalah perangkat yang mampu mengubah energi matahari menjadi energi listrik. Namun, tantangan dengan sel surya terletak pada biaya perangkat dan instalasi yang relatif tinggi, yang membutuhkan investasi tetap yang signifikan. Oleh karena itu, untuk mencapai Break Even Point (BEP) yang cepat, optimalisasi pembangkit listrik tenaga surya sangat penting. Optimalisasi ini dapat dicapai dengan mendesain instalasi seefisien mungkin. Alat utama yang dapat membantu dalam proses ini adalah Machine Learning, yang dapat belajar dari data historis tentang persentase energi yang dihasilkan relatif terhadap kapasitas penyimpanan, dengan mempertimbangkan kondisi cuaca, radiasi matahari, dan analisis deret waktu.
 
-**Rubrik/Kriteria Tambahan (Opsional)**:
 - Optimalisasi Penyerapan dan Konversi Surya ke Listrik sangat penting dengan tujuan membangun instalasi yang se efisien mungkin sehingga penggunaan sumber daya terbarukan dapat lebih efektif dan mencapai Break Even Point lebih cepat atas Biaya perangkat Instalasi yang relatif tinggi. 
 - Mengapa Predictive Analytics diterapkan pada kasus tersebut ?
   analisis descriptive seperti analisis faktor-faktor yang berpengaruh penting pada kasus tersebut namun demikian ada beberapa manfaat yang didapat dari analisis predictive ini, diantaranya: 
@@ -37,15 +36,22 @@ Menjelaskan tujuan dari pernyataan masalah:
 - Mengetahui besaran korelasi atara fitur-fitur lingkungan dengan variabel respon (%Baseline). 
 - Membuat pemodelan seakurat mungkin dan dapat memprediksi performa panel surya  atas faktor-faktor lingkungan yang ada. 
 
-**Rubrik/Kriteria Tambahan (Opsional)**:
-    ### Solution statements
-    - Pemodelan linear akan dibangun dengan RidgeCV dan di evaluasi dengan metrik evalusi RMSE atas data uji dengan metode cross validation dengan fold = 5. 
-    - Pemodelan non linear akan dibangun dengan pemodelan terpilih, yang seringkali akurat pada berbagai analisis terkait dengan data tabular/ terstruktur dengan library scikit learn. Pemodelan terpilih diantaranya Random Forest, XGBoost, dan Catboost. Pemodelan tersebut akan di evaluasi dengan metrik evaluasi RMSE atas data uji dengan metode cross validation dengan fold = 5. 
-    - Pemodelan tersebut akan dipilih yang rerata RMSE cross validation tertinggi dan dilakukan improvement dengan hyperparamter tuning yang ditinjau atas metrik evalusi RMSE.
+### Solution statements
+- Pemodelan linear akan dibangun dengan RidgeCV dan di evaluasi dengan metrik evalusi RMSE atas data uji dengan metode cross validation dengan fold = 5. 
+- Pemodelan non linear akan dibangun dengan pemodelan terpilih, yang seringkali akurat pada berbagai analisis terkait dengan data tabular/ terstruktur dengan library scikit learn. Pemodelan terpilih diantaranya Random Forest, XGBoost, dan Catboost. Pemodelan tersebut akan di evaluasi dengan metrik evaluasi RMSE atas data uji dengan metode cross validation dengan fold = 5. 
+- Pemodelan tersebut akan dipilih yang rerata RMSE cross validation tertinggi dan dilakukan improvement dengan hyperparamter tuning yang ditinjau atas metrik evalusi RMSE.
 
 ## Data Understanding
-Dataset yang digunakan pada pemodelan prediktif ini terdiri atas 3 dataset, yaitu dataset utama (terdiri atas timestamp dan %Baseline), dataset solar irradiance (primary key timestamp), dan dataset cuaca (primary key timestamp). Adapun sumber data tersebut dapat diakses pada [link berikut](https://www.kaggle.com/competitions/preliminary-round-dac-prs-2024/data)
-### Variabel-variabel pada dataset-dataset adalah sebagai berikut:
+Dataset yang digunakan pada pemodelan prediktif ini adalah hasil penggabungan tiga dataset utama yang berkondisikan terpisah-pisah dengan primary key timestamp sampai ke satuan jam, diantaranya: 
+- dataset utama (terdiri atas timestamp dan %Baseline). Terdiri atas 18942 baris dan 2 kolom, 
+- dataset solar irradiance (primary key timestamp). Terdiri atas empat tahun dimana masing-masing tahun terdiri atas 8760 baris dan 19 kolom (kecuali tahun kabisat, 2016, terdiri atas 8784 baris dan 19 kolom). Dengan demikian jika digabungkan dataset solar irradiance memiliki 35064 baris dan 19 kolom,
+- dan dataset cuaca (primary key timestamp). Dataset ini terdiri atas  35064 baris dan 24 kolom. 
+Dataset-dataset tersebut kemudian digabungkan dengan metode inner join dengan timestamp sebagai primary key. 
+
+Adapun sumber data tersebut dapat diakses pada [link berikut](https://www.kaggle.com/competitions/preliminary-round-dac-prs-2024/data)
+
+
+### Urian variabel-variabel pada dataset-dataset adalah sebagai berikut:
 #### Dataset Utama
 - %Baseline: persentase energi yang dihasilkan dalam satu jam berdasarkan kapasitas penyimpanan energi (Variabel Respons). 
 - Timestamp: data waktu yang terdiri atas tahun, bulan, tanggal, jam, menit, dan detik. 
@@ -90,19 +96,23 @@ Dataset yang digunakan pada pemodelan prediktif ini terdiri atas 3 dataset, yait
 - winddirDegree: Arah angin. (Derajat)
 - windspeedKmph: Kecepatan angin rata-rata. (Kilometer per jam)
 
-**Rubrik/Kriteria Tambahan (Opsional)**:
+### Tahapan Analisis Prediktif:
 Untuk memahami data-data tersebut dengan baik dilakukan beberapa tahapan sebagai berikut 
-- Data Wrangling, meliputi pengaksesan data dan mamahami format yang dimiliki oleh fitur setiap dataset. Dilajutkan dengan penggabungan atas ketiga dataset tesebut (terkecuali dataset solar irradiance dengan alasan memiliki missing value.)
-- Descriptive analysis atau acessing data, digunakan untuk mendeskripsikan tipe data, sebaran data, dan nilai-nilai data yang mencurigakan. 
-- Handling Missing Value, setelah pengecekan missing value ditemukan terdapat 2777 data bertipe numerik yang memiliki missing value (DHI, DNI, GHI, Clearsky DHI, Clearsky DNI, Clearsky GHI) dan 2486 data bertipe nominal (Cloud Type). Adapun treatment yang dilakukan adalah dengan melakukan interpolasi data bertipe data numerik dengan rerata nilai sebelum dan setelahnya. Interpolasi tersebut dilakukan mengingat data-data tesebut merupakan data runtut waktu sehingga alangkah lebih baik berhubungan dengan waktu sebelum dan setelahnya. Adapun fitur Cloud Type juga ditemukan kelas bernama 'unknown' sehingga diubahlah ke Null. Interpolasi missing value fitur ini dilakukan dengan mengisi missing value dengan data sebelumnya. 
-- Analisis univariate, dilakukan untuk memahami data-data pada setiap fitur. Bagaimana data tersebar pada fitur-fitur tesebut, bagaimana bentuk distribusi datanya jika tipe datanya numerik. Pada analisis ini dapat disimpulkan bahwa data pada variabel respon % Baseline memiliki kecenderungan di bawah, yang berarti banyak panel yang kurang optimal, distribusi data miring ke kanan yang dapat berimplikasi pada pembangunan model.
-- Analisis Multivariate, dilakukan untuk memahami hubungan antar variabel dalam dataset. Pada fitur Cloud Type disimpulkan Cloud Type dengan jenis Clear merupakan tipe Cloud Type yang mempunyai rerata % Baseline tertinggi yaitu sebesar (35%) dilanjutkan dengan Fog (26%) dan Probabily Clear (25%). Pada fitur bertipe numerik didapat hubungan yang beragam tiap fitur dengan % Baseline melalui pairplot. Melalui correlation bar, didapat bahwa sunHour, HeatIndexC, tempC merupakan fitur dengan korelasi positif tertinggi dengan % Baseline. Dilain sisi, humidity, cloudcover, dan Solar Zenith Angle adalah fitu dengan korelasi negatif tertinggi dengan % Baseline. ![Bar Korelasi Fitur dengan % Baseline](correlation_numerical_features.png)
+#### Data Wrangling
+meliputi pengaksesan data dan mamahami format yang dimiliki oleh fitur setiap dataset. Dilajutkan dengan penggabungan atas ketiga dataset tesebut (terkecuali dataset solar irradiance dengan alasan memiliki missing value.)
+#### EDA - Descriptive analysis
+digunakan untuk mendeskripsikan tipe data, sebaran data, dan nilai-nilai data yang mencurigakan. 
+#### EDA - Handling Missing Value
+setelah pengecekan missing value ditemukan terdapat 2777 data bertipe numerik yang memiliki missing value (DHI, DNI, GHI, Clearsky DHI, Clearsky DNI, Clearsky GHI) dan 2486 data bertipe nominal (Cloud Type). Adapun treatment yang dilakukan adalah dengan melakukan interpolasi data bertipe data numerik dengan rerata nilai sebelum dan setelahnya. Interpolasi tersebut dilakukan mengingat data-data tesebut merupakan data runtut waktu sehingga alangkah lebih baik berhubungan dengan waktu sebelum dan setelahnya. Adapun fitur Cloud Type juga ditemukan kelas bernama 'unknown' sehingga diubahlah ke Null. Interpolasi missing value fitur ini dilakukan dengan mengisi missing value dengan data sebelumnya. 
+#### Analisis univariate
+dilakukan untuk memahami data-data pada setiap fitur. Bagaimana data tersebar pada fitur-fitur tesebut, bagaimana bentuk distribusi datanya jika tipe datanya numerik. Pada analisis ini dapat disimpulkan bahwa data pada variabel respon % Baseline memiliki kecenderungan di bawah, yang berarti banyak panel yang kurang optimal, distribusi data miring ke kanan yang dapat berimplikasi pada pembangunan model.
+#### Analisis Multivariate
+dilakukan untuk memahami hubungan antar variabel dalam dataset. Pada fitur Cloud Type disimpulkan Cloud Type dengan jenis Clear merupakan tipe Cloud Type yang mempunyai rerata % Baseline tertinggi yaitu sebesar (35%) dilanjutkan dengan Fog (26%) dan Probabily Clear (25%). Pada fitur bertipe numerik didapat hubungan yang beragam tiap fitur dengan % Baseline melalui pairplot. Melalui correlation bar, didapat bahwa sunHour, HeatIndexC, tempC merupakan fitur dengan korelasi positif tertinggi dengan % Baseline. Dilain sisi, humidity, cloudcover, dan Solar Zenith Angle adalah fitu dengan korelasi negatif tertinggi dengan % Baseline. ![Bar Korelasi Fitur dengan % Baseline](correlation_numerical_features.png)
 
 ## Data Preparation
 Teknik yang dilakukan pada data preparation ini diantaranya adalah feature engineering dan transformasi data, train test split, dan standardization. 
-
-**Rubrik/Kriteria Tambahan (Opsional)**: 
-- Teknik feature engineering adalah teknik yang digunakan untuk melakukan pengembangan dan pemilihan fitur baru dengan melibatkan transformasi data. Hasil fitur baru tersebut diharapkan membuat data lebih bisa dipahami oleh mesin sehingga meningkatkan akurasi pemodelan yang dibuat. Adapun Feature engineering dan transformasi data yang dilakukan adalah sebagai berikut, 
+### Teknik feature engineering
+adalah teknik yang digunakan untuk melakukan pengembangan dan pemilihan fitur baru dengan melibatkan transformasi data. Hasil fitur baru tersebut diharapkan membuat data lebih bisa dipahami oleh mesin sehingga meningkatkan akurasi pemodelan yang dibuat. Adapun Feature engineering dan transformasi data yang dilakukan adalah sebagai berikut, 
   - Pengembangan fitur Season, yaitu membuat fitur musim apa yang terjadi saat timestamp tersebut. Adapun pembagian musimnya adalah menyesuaikan pemusiman bumi bagian barat, yaitu 
     - Musim winter (Desember - Februari)
     - Musim spring (Maret - Mei)
@@ -133,24 +143,84 @@ Teknik yang dilakukan pada data preparation ini diantaranya adalah feature engin
           df[f'{col}_cos'] = np.cos(time*(2*np.pi/time_range[col]))
       return df
   ````
-- Train Test Split, disini digunakan pembagian dataset menjadi dua bagian, yaitu training set dan validation set. Tujuannya adalah agar kita tidak mengotori validation set dengan informasi yang didapat dari data latih. Adapun pembagiannya adalah 10% validation set, dan 90% training set. Alasan pembagian tersebut adalah data yang cukup besar, yaitu 18942 sehingga validasi 1895 data terasa cukup sehingga porsi belajar dapat lebih besar. 
-- Standardisasi, dilakukan untuk kolom numerikal yang bukan hasil dari transformasi encoding. Standardisasi ini diaharapkan membantuk algoritma machine learning untuk menghasilkan performa yang lebih baik, sehingga dapat lebih konvergen. Standardisasi yang digunakan pada analisis ini adalah teknik StandarScaler yang ada pada library scikit learn dengan menghasilkan distribusi data bernilai -1 hingga 1, rerata 0, dan berstandar deviasi 1. 
+### Train Test Split
+disini digunakan pembagian dataset menjadi dua bagian, yaitu training set dan validation set. Tujuannya adalah agar kita tidak mengotori validation set dengan informasi yang didapat dari data latih. Adapun pembagiannya adalah 10% validation set, dan 90% training set. Alasan pembagian tersebut adalah data yang cukup besar, yaitu 18942 sehingga validasi 1895 data terasa cukup sehingga porsi belajar dapat lebih besar. 
+### Standardisasi
+dilakukan untuk kolom numerikal yang bukan hasil dari transformasi encoding. Standardisasi ini diaharapkan membantuk algoritma machine learning untuk menghasilkan performa yang lebih baik, sehingga dapat lebih konvergen. Standardisasi yang digunakan pada analisis ini adalah teknik StandarScaler yang ada pada library scikit learn dengan menghasilkan distribusi data bernilai -1 hingga 1, rerata 0, dan berstandar deviasi 1. 
 
 
 ## Modeling
-Seperti yang dijelaskan sebelumnya, analisis ini menggunakan 5 pemodelan terpilih. Pemodelan tersebut akan dievalusi dengan metrik evaluasi RMSE dengan Cross Validation dengan Folds 5. Dari hasil evaluasi tersebut akan dipilih satu pemodelan yang memberikan RMSE terbaik dan dilakukan hyperparamater tunning sehingga menghasilkan pemodelan yang lebih baik. Pemodelan dan parameter base model yang dipilih diantaranya, 
-- Ridge : linear_model.RidgeCV()
+Seperti yang dijelaskan sebelumnya, analisis ini menggunakan 5 pemodelan terpilih. Selanjutnya, akan dipilih satu pemodelan yang memberikan metrik evaluasi atas data uji terbaik dan dilakukan hyperparamater tunning sehingga menghasilkan pemodelan yang lebih baik. Pemodelan dan parameter base model yang dipilih diantaranya, 
+- RidgeCV : linear_model.RidgeCV()
 - Random Forest : ensemble.RandomForestRegressor(n_jobs=-1, random_state=STATE)
 - XGBoost : xgb.XGBRegressor(n_estimators=200, random_state=STATE)
 - Catboost : cb.CatBoostRegressor(verbose=0, random_state=STATE)
 - LightGBM : lgbm.LGBMRegressor(n_estimators=1000, random_state=STATE)
 
-**Rubrik/Kriteria Tambahan (Opsional)**: 
+### Penjelasan kelebihan dan kekurangan pemodelan terpilih
 - Ridge Regression adalah pengemabangan dari metode regresi linear dengan regularisasi. Hal itu membuatnya lebih cepat untuk diimplementasikan dan memiliki interretasi yang mudah. Pemodelan ini cocok pada data yang sederhana dan bisa menangkap hubungan linear dalam permasalahan. Namun, karena pemodelan regresi linear, dia tidak bisa menangkap hubungan yang tidak linear. 
 - Random Forest bisa menangkap hubungan non linear. Dengan teknik bagging, model ini cenderung robust dibandingkan dengan decision tree. Adapun kekurangannya, bagging nya random juga kurang interpretatif seperti Ridge.
 - XGBoost, dikenal dapat menangani non linearitas yang kompleks juga dilengkapi dengan kontrol overfitting (L1 dan L2) sehingga dapat menghindari risiko overfitting. Kekuranganya, perlu tuning lama untuk dapat parameter terbaik. Hal itu dikarenakan hyperparameter yang banyak. 
 - CatBoost, fitur kategori dapat diproses tanpa encoding dulu, kinerja tinggi pada default. Namun kekurangannya, komputasinya berat. 
 - LightGBM, menggunakan teknik histogram dan leaf-wise growth yang membuatnya sangat cepat belajar pada dataset yang besar, dapat menangani data sparse. Namun seperti halnya Random Forest, LightGBM ini relatif sulit di interpretasi 
+
+### Penjelasan parameter yang digunakan sebagai base model
+- RidgeCV: berikut adalah penjelasan parameter yang digunakan 
+  - alphas (nilai regularisasi untuk dicoba)
+  - fit_intercept (apakah perlu menambahkan intercept). Pemodelan ini menggunakan fit_intercept = True mengikuti default model. 
+  - scoring: skor untuk evaluasi selama cross validation. 
+  - cv : banyak lipatan cross validation. Pemodelan ini menggunakan cv = 5. 
+  - normalize : apakah diperlukan normalisasi data sebelum fitting. 
+- Random Forest 
+  - n_jobs = -1 (jumlah thread yang dipakai untuk algoritma). Karena pemodelan ini menggunakan -1 maka semua core CPU digunakan sehingga pelatihan dapat lebih cepat. 
+  - random_state (seed untuk pengacakan yang dapat di reproduksi). Nilai seed disini digunakan 123. 
+  - n_estimators (jumlah pohon dalam hutan)
+  - max_depth: batas kedalaman pohon, berguna untuk kontrol overfitting. 
+  - min_samples_split: Jumlah minimum sampel yang diperlukan untuk memecah node internal. 
+  - min_samples_leaf: Jumlah minimum sampel yang diperlukan di daun node. 
+- XGBoost 
+  - n_estimators = 200 (jumlah pohon boosting yang diapaki dalam model). 
+  - random_state = 123
+  - learning_rate = kontrol seberapa besar setiap pohon kontribusi pada prediksi akhir. 
+  - max_depth = kedalaman maskimum pohon individu. 
+  - subsample = presentase sampel yang dipakai untuk membangun setiap pohon. 
+  - colsample_bytree = proporsi fitur yang dipilih secara acak untuk membangun setiap pohon. 
+- CatBoost 
+  - verbose = 0 (menonaktifkan output logging selama pelatihan), 
+  - random_state = 123
+  - iterations (jumlah interasi (jumlah pohon) yang akan digunakan dalam boosting)
+  - learning_rate (langkah dimana model belajar dari kesalahan). 
+  - depth (kedalaman maksimum pohon di boosting). 
+  - l2_leaf_reg (reularisasi L2 pada bobot daun pohon, tujuan untuk cegah overfitting). 
+- LightGBM 
+  - n_estimators = 1000, jumlah pohon dalam mdoel boosting. Nilai tersebut relatif banyak namun cukup dengan waktu komputasi yang diberikan. 
+- random_state = 123
+- learning_rate (kontrol laju belajar) 
+- max_depth (kontrol kedalaman pohon)
+- boosting_type = gdbt 
+- num_leaves (jumlah maksimum daun dalam satu pohon)
+
+
+## Evaluation
+### Evaluasi pemodelan
+- Metrik evaluasi yang digunakan pada analisis ini adalah RMSE (Root Mean Squared Error). RMSE adalah hasil akar dari MSE (Mean Squared Erorr). MSE adalah rerata kuadrat dari perbedaan prediksi data y hat i dengan data aktual yi. Adapun rumus keduanya adalah sebagai berikut: 
+Mean Squared Error (MSE):
+$$\text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2$$
+Root Mean Squared Error (RMSE):
+$$\text{RMSE} = \sqrt{\frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2}$$
+- Selain itu, untuk mencegah adanya overfitting pada prediksi data uji, evaluasi dilakukan dengan teknik validasi silang dengan pembagian data (folds) sebanyak 5. 
+```
+# Root Mean Square Error with Cross Validation 
+def get_rmse(y_pred: np.array, y_true: np.array, folds:int=5)-> np.array:
+    scores=np.zeros(folds)
+    dpf = int(np.ceil(len(y_pred)/folds))
+    for i in range(folds):
+        start = i*dpf
+        end = min((i+1)*dpf, len(y_pred))
+        scores[i] = mse(y_pred[start:end], y_true[start:end], squared=False)
+    return scores
+```
+Prosesnya adalah setelah data uji dibagi 5, kemudian dilakukan looping dan dihitung RMSE nya. Setelah itu didapat array score atas nilai RMSE setiap subset data itu. Lalu dirata-ratakan sebagai evaluasi tunggal. 
 - Setelah dilakukan pemodelan, masing-masing pemodelan dievaluasi dengan hasil data uji sebagai berikut rmse(times taken): 
   - Ridge : 0.123(3.571 secs)
   - Random Forest : 0.08 (163.813 secs)
@@ -180,8 +250,6 @@ def objective(trial):
     rmse = mse(y_val, prediction, squared=False)
     return rmse
 ```
-
-## Evaluation
 - Setelah trial 200, didapat parameter terbaik sebagai berikut: 
   - 'objective': 'regression',
   - 'metric': 'rmse',
@@ -197,26 +265,30 @@ def objective(trial):
 - Selanjutnya dilakukan postprocessing pada model, yaitu memanipulasi hasil prediksi. Kita dapat lihat dari permasalahan bahwa data target adalah persentase energi yang dihasilkan selama satu jam dibandingkan kapasitas baterainya. Sehingga nilainya harus berkisar antara 0 dan 1. Dengan demikian, nilai prediksi diluar tersebut harus diubah ke batas range. Dengan manipulasi tersebut didapat nilai rmse data uji sebesar 0.06107. Namun demikian, jika ditinjau dari data latih nilai tersebut sangatlah jauh dikarenakan RMSE data latih adalah 0.00899 (overfitting). 
 - Adapun solusi dari permasalahan overfitting ini adalah dengan membangun pemodelan stacking dari beberapa pemodelan terpilih yang juga dilakukan hyper tunning. 
 - Teknik stacking tidak dilakukan pada analisis ini dikarenakan membutuhkan waktu yang relatif banyak dan juga memerlukan proses trial dan error untuk model selection. 
+### Evaluasi atas pemahaman bisnis 
+- Fitur yang paling berpengaruh terhadap performa panel surya berdasar pemodelan terbaik dengan parameter terbaik didapat: 
+  1. hour_cos (jam dengan siklus cosinus), 
+  2. sunHour (perkiraan total jam sinar matahari), 
+  3. humidity (% kelembapan udara),
+  4. cloudcover (persentase cakupan awan), dan 
+  5. DNI (Direct Normal Irradiance), Jumlah radiasi matahari yang diterima per satuan luas oleh permukaan yang tegak lurus dengan sinar yang datang dalam garis lurus dari posisi matahari saat ini di langit. 
+- Pemodelan terbaik dalam memprediksi besar performa sistem panel surya ditinjau dari evaluasi RMSE data uji adalah model LightGBM. Pemodelan tersebut setelah dilakukan hyperparameter tunning dengan Optuna (bayesian optimization) didapat nilai RMSE untuk data uji sebesar 0,061.
+- Pemodelan ini dapat memprediksi energi yang didapat selama sejam dari kapasitas baterainya ditinjau dari karakteristik nya, dibuktikan dengan prediksi atas data uji. 
+- Adapun fitur-fitur dengan korelasi tinggi terhadap vairabel respon (%Baseline) berdasar analisis multivariate sebelumnya, diantaranya:
+  - sunHour (positif) 
+  - HeatIndexC (positif) 
+  - tempC (positif) 
+  - humidity (negatif)
+  - cloudcover (negatif)
+  - Solar Zenith Angle (negatif)
+- Solution statement yang direncanakan dalam analisis ini memberikan dampak signifikan dikarenakan menyasar berbagai aspek krusial dari permasalahan yang ada, yaotu optimasi performa sistem panel surya dan pengambilan keputusan bisnis yang lebih baik. Dampak yang dihasilkan diantaranya: 
+  - Pemodelan prediktif yang dibuat (pemodelan terbaik adalah LightGBM + hyperparameter tunning dengan Optuna bayesian optimization) mampu memprediksi performa panel surya berdasar fitur karakteristiknya. Dengan informasi ini, pihak pengelola instalasi energi surya dapat merencakan kapan sebaiknya pengoptimalan penggunaan panel surya dan kapan menggunakan alternatig lainnya sehingga biaya dapat ditekan dan efisiensi energi meningkat. 
+  - Pemodelan ini juga dapat diguanakan sebagai alat prediksi kelayakan lingkungan sebelum instalasi dilakukan. Informasi mengenai humidity, cloudcover, dan DNI dapat memberikan pandangan lebih jelas atas wilayah yang cocok untuk panel surya. 
+  - Dengan informasi prediktif yang akurat, dapat diputuskan apakah suatu instalasi layak atau tidak berdasar prediksi performa panel surya dalam lingkungan tertentu. Sehingga mengurangi pengeluaran yang tidak perlu pada instalasi yang tidak optimal. 
 
-**Rubrik/Kriteria Tambahan (Opsional)**: 
-- Metrik evaluasi yang digunakan pada analisis ini adalah RMSE (Root Mean Squared Error). RMSE adalah hasil akar dari MSE (Mean Squared Erorr). MSE adalah rerata kuadrat dari perbedaan prediksi data y hat i dengan data aktual yi. Adapun rumus keduanya adalah sebagai berikut: 
-Mean Squared Error (MSE):
-$$\text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2$$
-Root Mean Squared Error (RMSE):
-$$\text{RMSE} = \sqrt{\frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2}$$
-- Selain itu, untuk mencegah adanya overfitting pada prediksi data uji, evaluasi dilakukan dengan teknik validasi silang dengan pembagian data (folds) sebanyak 5. 
-```
-# Root Mean Square Error with Cross Validation 
-def get_rmse(y_pred: np.array, y_true: np.array, folds:int=5)-> np.array:
-    scores=np.zeros(folds)
-    dpf = int(np.ceil(len(y_pred)/folds))
-    for i in range(folds):
-        start = i*dpf
-        end = min((i+1)*dpf, len(y_pred))
-        scores[i] = mse(y_pred[start:end], y_true[start:end], squared=False)
-    return scores
-```
-Prosesnya adalah setelah data uji dibagi 5, kemudian dilakukan looping dan dihitung RMSE nya. Setelah itu didapat array score atas nilai RMSE setiap subset data itu. Lalu dirata-ratakan sebagai evaluasi tunggal. 
+Referensi : 
+- CS DAC 2024. (2024). DAC PRS 2024. Kaggle. https://kaggle.com/competitions/preliminary-round-dac-prs-2024
+- Hoymiles. (2024, February 22). 7 factors that affect the performance of your solar system. https://www.hoymiles.com/resources/blog/7-factors-that-affect-the-performance-of-your-solar-system/ 
 
 _Catatan:_
 - Jika ada yang ditanyakan dapat menghubungi saya pada [email berikut](fewesgalih@gmail.com).
