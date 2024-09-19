@@ -17,7 +17,7 @@ Ada beberapa faktor yang berpengaru atas performa sistem surya, faktor tersebut 
     - Temperatur, menurutnya temperatur yang lebih tinggi membuat output dari sistem panel surya semakin rendah (ketika panel surya memanas tegangan bahan semikonduktor dalam panel turun, yang membuat output saluran berkurang). Artikel ini memberikan saran bahwa temperatur yang baik dalam sistem panel surya antara 15 - 35 derajat celcius
   - Faktor Peralatan, diantaranya sebagai berikut 
     - Degradasi usia, panel surya dapat ekpektasikan mengalami degradasi 8-14% selama 25 tahun pertama setelah instalasi. 
-    - Orientasi dan Tilt, kuncinya adalah menghitung sudut azimuth (arah kompas dari mana matahari berada, menempatkan panel pada kemiringan yang tetap tegak lurus dengan matahari). Jika di khatulistiwa utara, saluran harus menghadap ke selatan. ![Pannel Orientation Suggestion](equipment_orientation.jpg)
+    - Orientasi dan Tilt, kuncinya adalah menghitung sudut azimuth (arah kompas dari mana matahari berada, menempatkan panel pada kemiringan yang tetap tegak lurus dengan matahari). Jika di khatulistiwa utara, saluran harus menghadap ke selatan. ![Pannel Orientation Suggestion](https://github.com/user-attachments/assets/0612cecc-c9d0-4a6c-8d1d-6fe515ba4395)
     - Shading dan soliling. Shading atau bayangan, teramsuk kotoran dapat membuat penyerapan sinar matahari pada sistem konversi energi di panel surya tidak efektif.
     - Efisiensi Inverter akan membuat performa sistem panel surya lebih baik. 
       - Efisiensi Konversi 
@@ -107,7 +107,7 @@ setelah pengecekan missing value ditemukan terdapat 2777 data bertipe numerik ya
 #### Analisis univariate
 dilakukan untuk memahami data-data pada setiap fitur. Bagaimana data tersebar pada fitur-fitur tesebut, bagaimana bentuk distribusi datanya jika tipe datanya numerik. Pada analisis ini dapat disimpulkan bahwa data pada variabel respon % Baseline memiliki kecenderungan di bawah, yang berarti banyak panel yang kurang optimal, distribusi data miring ke kanan yang dapat berimplikasi pada pembangunan model.
 #### Analisis Multivariate
-dilakukan untuk memahami hubungan antar variabel dalam dataset. Pada fitur Cloud Type disimpulkan Cloud Type dengan jenis Clear merupakan tipe Cloud Type yang mempunyai rerata % Baseline tertinggi yaitu sebesar (35%) dilanjutkan dengan Fog (26%) dan Probabily Clear (25%). Pada fitur bertipe numerik didapat hubungan yang beragam tiap fitur dengan % Baseline melalui pairplot. Melalui correlation bar, didapat bahwa sunHour, HeatIndexC, tempC merupakan fitur dengan korelasi positif tertinggi dengan % Baseline. Dilain sisi, humidity, cloudcover, dan Solar Zenith Angle adalah fitu dengan korelasi negatif tertinggi dengan % Baseline. ![Bar Korelasi Fitur dengan % Baseline](correlation_numerical_features.png)
+dilakukan untuk memahami hubungan antar variabel dalam dataset. Pada fitur Cloud Type disimpulkan Cloud Type dengan jenis Clear merupakan tipe Cloud Type yang mempunyai rerata % Baseline tertinggi yaitu sebesar (35%) dilanjutkan dengan Fog (26%) dan Probabily Clear (25%). Pada fitur bertipe numerik didapat hubungan yang beragam tiap fitur dengan % Baseline melalui pairplot. Melalui correlation bar, didapat bahwa sunHour, HeatIndexC, tempC merupakan fitur dengan korelasi positif tertinggi dengan % Baseline. Dilain sisi, humidity, cloudcover, dan Solar Zenith Angle adalah fitu dengan korelasi negatif tertinggi dengan % Baseline. ![Bar Korelasi Fitur dengan % Baseline](https://github.com/user-attachments/assets/1a6eab31-c478-410f-b5e1-39a958c232fe)
 
 ## Data Preparation
 Teknik yang dilakukan pada data preparation ini diantaranya adalah feature engineering dan transformasi data, train test split, dan standardization. 
@@ -156,6 +156,7 @@ Seperti yang dijelaskan sebelumnya, analisis ini menggunakan 5 pemodelan terpili
 - XGBoost : xgb.XGBRegressor(n_estimators=200, random_state=STATE)
 - Catboost : cb.CatBoostRegressor(verbose=0, random_state=STATE)
 - LightGBM : lgbm.LGBMRegressor(n_estimators=1000, random_state=STATE)
+### Penjelasan algoritma pemodelan
 
 ### Penjelasan kelebihan dan kekurangan pemodelan terpilih
 - Ridge Regression adalah pengemabangan dari metode regresi linear dengan regularisasi. Hal itu membuatnya lebih cepat untuk diimplementasikan dan memiliki interretasi yang mudah. Pemodelan ini cocok pada data yang sederhana dan bisa menangkap hubungan linear dalam permasalahan. Namun, karena pemodelan regresi linear, dia tidak bisa menangkap hubungan yang tidak linear. 
@@ -194,11 +195,11 @@ Seperti yang dijelaskan sebelumnya, analisis ini menggunakan 5 pemodelan terpili
   - l2_leaf_reg (reularisasi L2 pada bobot daun pohon, tujuan untuk cegah overfitting). 
 - LightGBM 
   - n_estimators = 1000, jumlah pohon dalam mdoel boosting. Nilai tersebut relatif banyak namun cukup dengan waktu komputasi yang diberikan. 
-- random_state = 123
-- learning_rate (kontrol laju belajar) 
-- max_depth (kontrol kedalaman pohon)
-- boosting_type = gdbt 
-- num_leaves (jumlah maksimum daun dalam satu pohon)
+  - random_state = 123
+  - learning_rate (kontrol laju belajar) 
+  - max_depth (kontrol kedalaman pohon)
+  - boosting_type = gdbt 
+  - num_leaves (jumlah maksimum daun dalam satu pohon)
 
 
 ## Evaluation
@@ -227,8 +228,9 @@ Prosesnya adalah setelah data uji dibagi 5, kemudian dilakukan looping dan dihit
   - XGBoost : 0.076 (12.51 secs)
   - Catboost : 0.077 (76.871 secs)
   - LightGBM : 0.07 (37.435 secs)
-- Oleh karena itu, pemodelan yang diambil pada analisis ini adalah LGBM regressor. Setelah dievaluasi berikut adalah fitur penting yang paling membantu berdasar Gain. ![Feature Importance LGBM, best gain](best_gain.png)
-Berikut adalah fitur penting yang paling membantu pembangunan LightGBM berdasar Split (fitur yang paling sering diguanakan atas keputusan split). ![Feature Importance LGBM, split decision](split.png)
+- Oleh karena itu, pemodelan yang diambil pada analisis ini adalah LGBM regressor. Setelah dievaluasi berikut adalah fitur penting yang paling membantu berdasar Gain. ![Feature Importance LGBM, best gain](https://github.com/user-attachments/assets/b451ab23-4b18-4b9b-beb8-f96b5b58e1c9)
+Berikut adalah fitur penting yang paling membantu pembangunan LightGBM berdasar Split (fitur yang paling sering diguanakan atas keputusan split). ![Feature Importance LGBM, split decision](https://github.com/user-attachments/assets/f4d0b3dd-baa2-4e89-87b6-b665831d9cc5)
+
 - Setelah itu dilakukan hypertunning untuk menemukan paramter terbaik pada model LightGBM sehingga model dapat lebih akurat untuk melakukan prediksi. Adapun parameter yang di tunning dilakukan dengan Optuna, yang merupakan teknik pintar dengan optimisasi Bayesian. 
 ```
 def objective(trial):
