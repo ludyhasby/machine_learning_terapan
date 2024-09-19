@@ -148,7 +148,6 @@ disini digunakan pembagian dataset menjadi dua bagian, yaitu training set dan va
 ### Standardisasi
 dilakukan untuk kolom numerikal yang bukan hasil dari transformasi encoding. Standardisasi ini diaharapkan membantuk algoritma machine learning untuk menghasilkan performa yang lebih baik, sehingga dapat lebih konvergen. Standardisasi yang digunakan pada analisis ini adalah teknik StandarScaler yang ada pada library scikit learn dengan menghasilkan distribusi data bernilai -1 hingga 1, rerata 0, dan berstandar deviasi 1. 
 
-
 ## Modeling
 Seperti yang dijelaskan sebelumnya, analisis ini menggunakan 5 pemodelan terpilih. Selanjutnya, akan dipilih satu pemodelan yang memberikan metrik evaluasi atas data uji terbaik dan dilakukan hyperparamater tunning sehingga menghasilkan pemodelan yang lebih baik. Pemodelan dan parameter base model yang dipilih diantaranya, 
 - RidgeCV : linear_model.RidgeCV()
@@ -156,8 +155,56 @@ Seperti yang dijelaskan sebelumnya, analisis ini menggunakan 5 pemodelan terpili
 - XGBoost : xgb.XGBRegressor(n_estimators=200, random_state=STATE)
 - Catboost : cb.CatBoostRegressor(verbose=0, random_state=STATE)
 - LightGBM : lgbm.LGBMRegressor(n_estimators=1000, random_state=STATE)
-### Penjelasan algoritma pemodelan
+### Penjelasan cara kerja algoritma pemodelan
+#### RidgeCV
+- Ridge regression adalah regresi linear dengan penalti pada besar koefisien regresi (regularisasi L2) dengan tujuan menghindari overfitting.
+- CV atau _cross validation_ digunakan untuk memilih nilai terbaik dari hyperparameter alpha (parameter regularisasi).
+#### Random Forest 
+- Ensemble learning dengan membangun banyak decision tree selama proses pelatihan, kemudian hasilnya digabung untuk meningkatkan akurasi dan stabilitas prediksi.
+- Setiap tree dalam forest dibangun dengan subset acak dari data latih dan subset acak dari fitur. Keputusan akhir adalah rerata dari semua prediksi masing-masing pohon itu.
+- Dengan mengombinasi banyak pohon yang lemah, Random Forest ini cenderung lebih robust terhadap overfitting dan hasil yang lebih akurat.
+#### XGBoost (Extreme Gradient Boosting)
+- Varian dari GDBT (Gradient Boosting Decision Tree).
+- Model dibangun secara berurutan dimana model baru memperbaiki kesalahan model sebelumnya.
+- Pohon keputusan dibangun secara bertahap pada setiap langkah. XGBoost juga menerapkan teknik regularisasi untuk menghindari overfitting dan punya fitur optimasi yang canggih, diantaranya early stopping dan shrinkage. (Septiana Rizky dkk., 2022) Dengan demikian, fungsi objektif XGBoost ini adalah,
+$O = \sum_{i=1}^{n} L(y_i, F(x_i)) + \sum_{k=1}^{t} R(f_k) + C$
 
+  dimana $R(f_k)$ merupakan fungsi regularisasi yang persamaanya dapat dinyatakan sebagai berikut
+  $R(f_k) = \alpha H + \frac{1}{2} \eta \sum_{j=1}^{H} w_j^2$
+  
+  dengan $\alpha H$ adalah komplesitas daun, H adalah jumlah daun $\eta$ adalah parameter penalti dan $w_j^2$ adalah output   setiap simpul daun. 
+-  XGboost ini dirancang dengan sangat efisien dalam hal memori dan kecepatan.
+#### CatBoost 
+- algoritma GDBT berbasis pohon dengan optimalisasi untuk data kategorikal secara langsung, tanpa encoding.
+- Catboost dirancang berkerja baik pada data tabular dengan teknik ordered boosting yang mencegah overfitting pada dataset kecil.
+- Fungsi objektif nya adalah sebagai berikut,
+  $F(x) = F_0 (x) + \sum{m=1}^{M} \sum{i=1}^{N} f_m (x_i)$
+  
+  dimana,
+  - $F_0 (x)$ adalah tebakan awal atau prediksi baseline.
+  - M adalah total pohon, N adalah jumlah sampel pelatihan. 
+#### LightGBM
+- algoritma dengan kerangka GBDT (Gradient Boosting Decision Tree) dimana bertujuan meningkatkan efisiensi komputasi sehingga pelatihan dapat dilakukan lebih cepat dengan akurasi yang lebih baik. (Septiana Rizky dkk., 2022)
+- Alih-alih membelah pohon dengan breadth-first (cara konvensional seperti GBDT yang lain), LGBM menggunakan leaf-wise growth yang hanya memperluas leaf dengan loss terbesar sehingga lebih cepat dan efisien. ![Leaf Wise Tree Growth](https://github.com/user-attachments/assets/56541761-5564-4251-ac1a-80ca38ac2508) 
+- sebelum pemrosesan model, LGBM akan melakukan preprocessing terlebih dahulu seperti membuat bins untuk histrogram dan bundling feature secara ekslusif
+- Selanjutnya, LGBM akan mencari varians gain untuk masing-masing leaf node dan mencari node yang paling baik untuk split dimana memberi peningkatan besar. Adapun persamaan untuk mencari gain varians adalah sebagai berikut:
+
+  $\tilde{V_j}(d) = \frac{1}{n} \left( \frac{\left( \sum_{x_i \in A_l} g_i + \frac{1-\alpha}{b} \sum_{x_i \in B_l} g_i \right)^2}{n_l^j(d)} + \frac{\left( \sum_{x_i \in A_r} g_i + \frac{1-\alpha}{b} \sum_{x_i \in B_r} g_i \right)^2}{n_r^j(d)} \right)$
+
+  dimana,
+  - d = kriteria splitting
+  - j = fitur dimana splitting diterapkan
+  - n = jumlah total titik
+  - a = rasio sampling untuk data gradient besar
+  - b = rasio sampling untuk data gradient kecil
+  - Al = memsukkan semua poin dimana kurang dari atau sama dengan d dan mempunyai high gradient
+  - Bl = Mencakup semua titik yang kurang dari atau sama dengan d dan memiliki gradien rendah
+  - nl = jumlah titik di Al + jumlah titik di Bl
+  - Ar = Mencakup semua titik yang lebih dari d dan memiliki gradien yang tinggi (misalnya: masuk ke dalam a% teratas)
+  - Br = Mencakup semua titik yang lebih besar dari d dan memiliki gradien rendah (yaitu: jatuh ke dalam b% secara acak)
+  - nl = jumlah titik dalam Ar + jumlah titik dalam Br
+- Setelah setiap fitur pada node i akan dipilih fitur terbaik untuk di split dimana memberikan nilai varians gain tertinggi.
+- Hal itu akan di ulang sampai mendapat hasil yang diinginkan lalu dihitung residualnya dan input baru akan di set berdasar residual dan nilai prediksi. (Manvar, 2024)
 ### Penjelasan kelebihan dan kekurangan pemodelan terpilih
 - Ridge Regression adalah pengemabangan dari metode regresi linear dengan regularisasi. Hal itu membuatnya lebih cepat untuk diimplementasikan dan memiliki interretasi yang mudah. Pemodelan ini cocok pada data yang sederhana dan bisa menangkap hubungan linear dalam permasalahan. Namun, karena pemodelan regresi linear, dia tidak bisa menangkap hubungan yang tidak linear. 
 - Random Forest bisa menangkap hubungan non linear. Dengan teknik bagging, model ini cenderung robust dibandingkan dengan decision tree. Adapun kekurangannya, bagging nya random juga kurang interpretatif seperti Ridge.
@@ -206,9 +253,9 @@ Seperti yang dijelaskan sebelumnya, analisis ini menggunakan 5 pemodelan terpili
 ### Evaluasi pemodelan
 - Metrik evaluasi yang digunakan pada analisis ini adalah RMSE (Root Mean Squared Error). RMSE adalah hasil akar dari MSE (Mean Squared Erorr). MSE adalah rerata kuadrat dari perbedaan prediksi data y hat i dengan data aktual yi. Adapun rumus keduanya adalah sebagai berikut: 
 Mean Squared Error (MSE):
-$$\text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2$$
+$\text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2$
 Root Mean Squared Error (RMSE):
-$$\text{RMSE} = \sqrt{\frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2}$$
+$\text{RMSE} = \sqrt{\frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2}$
 - Selain itu, untuk mencegah adanya overfitting pada prediksi data uji, evaluasi dilakukan dengan teknik validasi silang dengan pembagian data (folds) sebanyak 5. 
 ```
 # Root Mean Square Error with Cross Validation 
@@ -290,7 +337,10 @@ def objective(trial):
 
 Referensi : 
 - CS DAC 2024. (2024). DAC PRS 2024. Kaggle. https://kaggle.com/competitions/preliminary-round-dac-prs-2024
-- Hoymiles. (2024, February 22). 7 factors that affect the performance of your solar system. https://www.hoymiles.com/resources/blog/7-factors-that-affect-the-performance-of-your-solar-system/ 
+- GeeksforGeeks. (2023, November 9). How CatBoost algorithm works. https://www.geeksforgeeks.org/catboost-algorithms/ 
+- Hoymiles. (2024, February 22). 7 factors that affect the performance of your solar system. https://www.hoymiles.com/resources/blog/7-factors-that-affect-the-performance-of-your-solar-system/
+- Manvar, P. (2024, March 4). Lightgbm Essentials: How it works and why it’s fast? Medium. https://medium.com/@pritmanvar/lightgbm-essentials-how-it-works-and-why-its-fast-586b83dda7af 
+- Septiana Rizky, P., Haiban Hirzi, R., & Hidayaturrohman, U. (2022). Perbandingan metode lightgbm Dan XGBoost Dalam Menangani data Dengan Kelas Tidak Seimbang. J Statistika: Jurnal Ilmiah Teori Dan Aplikasi Statistika, 15(2), 228–236. https://doi.org/10.36456/jstat.vol15.no2.a5548
 
 _Catatan:_
 - Jika ada yang ditanyakan dapat menghubungi saya pada [email berikut](fewesgalih@gmail.com).
