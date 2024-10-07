@@ -163,7 +163,9 @@ Pemodelan berbasis embedding dan dense layers menawarkan banyak kelebihan, seper
 
 
 ## Evaluation
-- Seperti yang dijelaskan pada bagian sebelumnya metrik evaluasi yang diguanakan adalah MSE dan MAE. Setelah pelatihan dilakukan didapatkan history pelatihan pada loss binary_crossentropy sebagai berikut : ![History Pemodelan](model_loss.png). Dapat dilihat bahwa pemodelan mendapat nilai evaluasi sebagai berikut: 
+- Seperti yang dijelaskan pada bagian sebelumnya metrik evaluasi yang diguanakan adalah MSE dan MAE. Setelah pelatihan dilakukan didapatkan history pelatihan pada loss binary_crossentropy sebagai berikut : ![History Pemodelan](https://github.com/user-attachments/assets/5de528a5-3695-428a-a38a-893e585351ea)
+
+- Dapat dilihat bahwa pemodelan mendapat nilai evaluasi sebagai berikut: 
     - mae training : 0.0868 
     - mse training : 0.0131 
     - mae testing : 0.0977 
@@ -180,8 +182,9 @@ Input :
 find_similar_animes('One Piece Film Strong World', n=5, neg=False) # mengamnbil 5 rekomendasi dengan kemiripan tertinggi
 ````
 Output : 
-![Hasil rekomendasi](recommendation_item.png)
-### User Based Recommendation 
+![recommendation_item](https://github.com/user-attachments/assets/b91d3d59-0675-4832-bf94-059290bb3f82)
+### User Based Recommendation
+
 - Pemodelan dapat mencari pengguna yang mirip (memiliki preferensi dengan pengguna yang diberikan)
 - Proses dari fungsi 'find_similar_user()' adalah mengambil ID pengguna yang dicari, menghitung jarak antara embedding pengguna dan semua pengguna lainnya, dan mengurutkannya dalam n pengguna teratas. 
 Demonstrasi : 
@@ -191,7 +194,7 @@ similar_users = find_similar_users(288569, n=5, neg=False)
 
 ````
 Output : 
-![Hasil rekomendasi](recommendation_user.png)
+![recommendation_user](https://github.com/user-attachments/assets/2ab14687-ac19-42d1-9c0e-147096202ad6)
 
 - Setelah pemodelan mendapatkan similar_user, akan diberikan rekomendasi anime kepada user dari user yang mirip dengan preferensinya. Adapun fungsi yang menghandle adalah 'get_recommended_anime', fungsi ini akan mengambil daftar anime yang disukai oleh user yang mirip preferesnsinya tadi, lalu di filter yang belum ditonton oleh user yang direkomendasikan, selanjuntya anime_list yang direkomendasi akan diubah menjadi satu dimesi (flatten) untuk menghitung jumlah kemunculan setiap anime. Lalu diambil yang paling banyak muncul (diambil sebanyak n yang diminta). 
 - Setelah dapat daftar anime yang di rekomendasikan, akan diambil informasi detail anime pada anime metadata dan mengembalikan ke user berupa informasi lengkap. 
@@ -201,7 +204,7 @@ Input :
 recommended_animes = get_recommended_animes(similar_users, n=10)
 ````
 Output : 
-![Hasil rekomendasi](recommendation_user_anime.png)
+![recommendation_user_anime](https://github.com/user-attachments/assets/c4f974a8-07eb-460c-b727-3d4459c81887)
 
 ### Rekomendasi berdasarkan peringkat (bonus)
 Akan diberikan rekomendasi anime berdasarkan peringkat yang diprediksi menggunakan model yang telah dibangun. Adapun proses dari pemberian rekomendasi ini adalah sebagai berikut : 
@@ -213,7 +216,7 @@ Akan diberikan rekomendasi anime berdasarkan peringkat yang diprediksi menggunak
 
 Demonstrasi : 
 Output : 
-![Hasil rekomendasi](recommendation_ratings.png)
+![recommendation_ratings](https://github.com/user-attachments/assets/350ba502-e087-4912-af70-c1b983b7526d)
 
 ### Evaluasi atas Pemahaman Bisnis
 - Pemodelan sistem rekomendasi anime berhasil dikembangkan dengan skor error yang relatif rendah (MSE) dan tidak menunjukkan overfitting yang berarti. 
