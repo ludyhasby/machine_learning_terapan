@@ -89,40 +89,40 @@ Untuk memahami data, juga dilakukan Exploratory data analysis yang befokus pada 
 Dikarenakan data rating sudah siap untuk dilakukannya analisis, teknik data preparation lebih berfokus pada pemilihan data yang ingi dipakai dalam pemodelan. Diantaranya: 
 - Mengambil user dimana user adalah user yang telah memberikan rating setidaknya 400 rating. Dari pemilihan ini didapatkan 24573.682 user atau sekitar 42.64% dari data keseluruhan. Hal ini dilakukan guna meningkatkan kualitas pemodelan yang dibangun dengan mengambil user yang lebih aktif yang mempunyai banyak interaksi ke banyak item anime. Selain itu dengan pengambilan data user yang aktif akan mengurangi adanya noise yang disebabkan user pasif yang mungkin memberikan rating random pada suatu anime. 
 
-### Notes: 
+#### Notes: 
 Disini akan difokuskan pada dataframe rating terlebih dahulu selanjutnya penggabungan data dilakukan setelah pemodelan dibangun, tujuan daripada hal tersebut adalah untuk berfokus pada peningkatan kinerja pemodelan, simplifikasi sehingga setelah pemodelan di buat akan diambil data yang diperlukan dari metadata yang ada. 
 
 - Nantinya, setelah pemodelan item-based (anime) sudah dibangun, akan dibuatkan fungsi getAnimeName(animeId), getAnimeFrame(animeId), dan getSynopsis(anime) dari anime metadata yang akan mengambil informasi detail dari anime. 
 - Begitupula dengan pemodelan user-based (penemuan similar users), setelah model menemukan user lain yang mempunyai user yang sama akan dibuatkan fungsi get_recommended_anime() dan mengambil detail rekomendasi anime dari anime metadata. 
 
-## Data Preprocessing 
+### Data Preprocessing 
 Teknik yang dilakukan pada data preprocessing ini diantaranya adalah: 
-### pengecekan missing value 
+#### pengecekan missing value 
 Ditemukan tidak diperlukan handling missing value dikarenakan tidak ada missing value pada dataset. 
-### normalisasi data rating
+#### normalisasi data rating
 Normalisasi data rating dilakukan dengan teknik min-max normalization, dimana ingin mengubah nilai rating dari skala (1-10) menjadi (0-1). Teknik ini dilakukan dengan formula sebagai berikut : 
 
 $ \text{rating\_scaled} = \frac{\text{rating} - \min(\text{rating})}{\max(\text{rating}) - \min(\text{rating})} $.
 
-### Cek duplikasi
+#### Cek duplikasi
 Setelah di lakukan pengecekan duplikat, tidak ditemukannya adanya duplikat pada dataset, sehingga tidak perlu handle duplicates. 
-### tabel kontingensi rating pada top user dan top anime
+#### tabel kontingensi rating pada top user dan top anime
 Tabel kontingensi ini mengambil 20 user yang paling banyak melakukan rating, dan 20 anime yang paling banyak di rating. Selanjutnya dibangun tabel kontingensi yang menggambarkan jumlah total rating yang diberikan oleh user top pada setiap anime top. 
-### encoding pada user dan anime data 
+#### encoding pada user dan anime data 
 - Encoding (menyandikan) fitur user_id dan anime_id ke dalam indeks integer. 
 - Setelah encoding dilakukan, dilakukan pengecekan jumlah anime dan jumlah user yang nantinya digunakan dalam pembangunan model. Diantaranya: 
    - Jumlah User: 35292, 
    - Jumlah Anime: 16844,
    - Min rating: 0.0,
    - Max rating: 1.0
-### Train Test Split
+#### Train Test Split
 - Sebelum data dibagi pada data latih dan data uji, dilakukan shuffling. Shuffling disini diterapkan untuk mencegah bias pada urutan data, sehingga train test split nantinya tidak dipengaruhi oleh urutan asli pada dataset. 
 - Adapun fraksi yang digunakan untuk train adalah 90% dengan random_state = 123. 
    - Train set ratings: 22116313
    - Test set ratings: 2457369
 - Setelah itu X train dan X test ditransformasikan kedalam array
 
-## Modeling
+## Modeling and Result
 ### Detail Model Building
 Pada tahap ini, model menghitung skor kecocokan antara pengguna dan anime dengan teknik embedding. Pertama, kita melakukan proses embedding terhadap data user dan anime. Selanjutnya, lakukan operasi perkalian dot product antara embedding user dan anime. Selain itu, kita juga dapat menambahkan bias untuk setiap user dan resto. Skor kecocokan ditetapkan dalam skala [0,1] dengan fungsi aktivasi sigmoid.
 - Inisialisasi model dan layer Embedding: didalam RecommenderNet y(ang terinspirasi pada latihan sebelumnya), embedding layer digunakan unutk merepresentasikan pengguna dan anime dalam bentuk vektor berdimensi rendah. 
@@ -163,7 +163,9 @@ Pemodelan berbasis embedding dan dense layers menawarkan banyak kelebihan, seper
 
 
 ## Evaluation
-- Seperti yang dijelaskan pada bagian sebelumnya metrik evaluasi yang diguanakan adalah MSE dan MAE. Setelah pelatihan dilakukan didapatkan history pelatihan pada loss binary_crossentropy sebagai berikut : ![History Pemodelan](model_loss.png). Dapat dilihat bahwa pemodelan mendapat nilai evaluasi sebagai berikut: 
+- Seperti yang dijelaskan pada bagian sebelumnya metrik evaluasi yang diguanakan adalah MSE dan MAE. Setelah pelatihan dilakukan didapatkan history pelatihan pada loss binary_crossentropy sebagai berikut : ![History Pemodelan](https://github.com/user-attachments/assets/5de528a5-3695-428a-a38a-893e585351ea)
+
+- Dapat dilihat bahwa pemodelan mendapat nilai evaluasi sebagai berikut: 
     - mae training : 0.0868 
     - mse training : 0.0131 
     - mae testing : 0.0977 
@@ -180,8 +182,9 @@ Input :
 find_similar_animes('One Piece Film Strong World', n=5, neg=False) # mengamnbil 5 rekomendasi dengan kemiripan tertinggi
 ````
 Output : 
-![Hasil rekomendasi](recommendation_item.png)
-### User Based Recommendation 
+![recommendation_item](https://github.com/user-attachments/assets/b91d3d59-0675-4832-bf94-059290bb3f82)
+### User Based Recommendation
+
 - Pemodelan dapat mencari pengguna yang mirip (memiliki preferensi dengan pengguna yang diberikan)
 - Proses dari fungsi 'find_similar_user()' adalah mengambil ID pengguna yang dicari, menghitung jarak antara embedding pengguna dan semua pengguna lainnya, dan mengurutkannya dalam n pengguna teratas. 
 Demonstrasi : 
@@ -191,7 +194,7 @@ similar_users = find_similar_users(288569, n=5, neg=False)
 
 ````
 Output : 
-![Hasil rekomendasi](recommendation_user.png)
+![recommendation_user](https://github.com/user-attachments/assets/2ab14687-ac19-42d1-9c0e-147096202ad6)
 
 - Setelah pemodelan mendapatkan similar_user, akan diberikan rekomendasi anime kepada user dari user yang mirip dengan preferensinya. Adapun fungsi yang menghandle adalah 'get_recommended_anime', fungsi ini akan mengambil daftar anime yang disukai oleh user yang mirip preferesnsinya tadi, lalu di filter yang belum ditonton oleh user yang direkomendasikan, selanjuntya anime_list yang direkomendasi akan diubah menjadi satu dimesi (flatten) untuk menghitung jumlah kemunculan setiap anime. Lalu diambil yang paling banyak muncul (diambil sebanyak n yang diminta). 
 - Setelah dapat daftar anime yang di rekomendasikan, akan diambil informasi detail anime pada anime metadata dan mengembalikan ke user berupa informasi lengkap. 
@@ -201,7 +204,7 @@ Input :
 recommended_animes = get_recommended_animes(similar_users, n=10)
 ````
 Output : 
-![Hasil rekomendasi](recommendation_user_anime.png)
+![recommendation_user_anime](https://github.com/user-attachments/assets/c4f974a8-07eb-460c-b727-3d4459c81887)
 
 ### Rekomendasi berdasarkan peringkat (bonus)
 Akan diberikan rekomendasi anime berdasarkan peringkat yang diprediksi menggunakan model yang telah dibangun. Adapun proses dari pemberian rekomendasi ini adalah sebagai berikut : 
@@ -213,7 +216,7 @@ Akan diberikan rekomendasi anime berdasarkan peringkat yang diprediksi menggunak
 
 Demonstrasi : 
 Output : 
-![Hasil rekomendasi](recommendation_ratings.png)
+![recommendation_ratings](https://github.com/user-attachments/assets/350ba502-e087-4912-af70-c1b983b7526d)
 
 ### Evaluasi atas Pemahaman Bisnis
 - Pemodelan sistem rekomendasi anime berhasil dikembangkan dengan skor error yang relatif rendah (MSE) dan tidak menunjukkan overfitting yang berarti. 
